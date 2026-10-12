@@ -1,0 +1,28 @@
+node_modules/
+dist/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+
+# Auth state (contains session cookies — never commit)
+.auth/*.json
+
+# Env files (contain secrets locally)
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editor / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

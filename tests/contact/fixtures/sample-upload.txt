@@ -1,0 +1,2 @@
+This is a sample file used by tests/contact/contact-us.spec.ts to verify the
+Contact Us form's file upload field. It is intentionally tiny and harmless.
