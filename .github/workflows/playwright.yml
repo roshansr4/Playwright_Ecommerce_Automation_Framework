@@ -38,7 +38,10 @@ jobs:
         run: npm ci
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps ${{ matrix.project }}
+        # Always include chromium: the "setup" project (auth provisioning)
+        # doesn't declare a browser and defaults to it regardless of which
+        # matrix project depends on it.
+        run: npx playwright install --with-deps chromium ${{ matrix.project }}
 
       - name: Run tests
         run: npx playwright test --project=${{ matrix.project }}
