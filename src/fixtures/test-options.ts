@@ -9,8 +9,6 @@ import { CheckoutPage } from '../pages/checkout.page';
 import { PaymentPage } from '../pages/payment.page';
 import { ContactUsPage } from '../pages/contact-us.page';
 import { ApiClient } from '../utils/api-client';
-import { loadUserCredentials } from './storage-state';
-import type { TestUser } from '../types/user.types';
 
 interface PageFixtures {
   homePage: HomePage;
@@ -26,8 +24,6 @@ interface PageFixtures {
 
 interface DataFixtures {
   apiClient: ApiClient;
-  /** The user provisioned by the `setup` project and persisted to .auth/user-credentials.json. */
-  authedUser: TestUser;
 }
 
 export const test = base.extend<PageFixtures & DataFixtures>({
@@ -60,9 +56,6 @@ export const test = base.extend<PageFixtures & DataFixtures>({
   },
   apiClient: async ({ request }, use) => {
     await use(new ApiClient(request));
-  },
-  authedUser: async ({}, use) => {
-    await use(loadUserCredentials());
   },
 });
 

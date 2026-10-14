@@ -29,10 +29,6 @@ export interface EnvConfig {
   video: 'on' | 'off' | 'retain-on-failure' | 'on-first-retry';
   defaultTimeout: number;
   navigationTimeout: number;
-  user: {
-    email: string;
-    password: string;
-  };
 }
 
 export const config: EnvConfig = {
@@ -47,8 +43,4 @@ export const config: EnvConfig = {
   video: (process.env.VIDEO as EnvConfig['video']) ?? 'retain-on-failure',
   defaultTimeout: toInt(process.env.DEFAULT_TIMEOUT, 10_000),
   navigationTimeout: toInt(process.env.NAVIGATION_TIMEOUT, 30_000),
-  user: {
-    email: process.env.TEST_USER_EMAIL ?? '',
-    password: process.env.TEST_USER_PASSWORD ?? '',
-  },
 };

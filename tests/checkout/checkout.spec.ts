@@ -1,15 +1,21 @@
-import { test, expect } from '../../src/fixtures/test-options';
-import { STORAGE_STATE_PATH } from '../../src/fixtures/storage-state';
+// Authenticated variant: each parallel worker logs into FIXED_TEST_USER
+// independently, so these tests run as the same account everywhere but
+// never share a session (cookie) with another worker or browser project.
+//
+// Known tradeoff: the AUT persists a logged-in user's cart against the
+// account itself, not the session cookie — so true zero-collision isolation
+// isn't achievable here under full concurrency while keeping one shared
+// account (chromium/firefox/webkit run as genuinely concurrent CI jobs and
+// could, in rare cases, race on cart state). We've decided this is an
+// acceptable tradeoff: retries (configured in playwright.config.ts) absorb
+// the occasional flake, and clearCart() in beforeEach keeps collisions rare.
+import { test, expect, FIXED_TEST_USER } from '../../src/fixtures/authed-test-options';
 import { buildCardDetails } from '../../src/data/user.factory';
-
-// These flows require a logged-in session — reuse the storage state
-// captured once by tests/auth/auth.setup.ts instead of logging in per test.
-test.use({ storageState: STORAGE_STATE_PATH });
 
 test.describe('Checkout and payment (authenticated)', () => {
   test.beforeEach(async ({ homePage, cartPage }) => {
-    // The cart is tied to the shared session cookie in STORAGE_STATE_PATH,
-    // so previous tests' items would otherwise leak into this one.
+    // Tests in this file share one worker's cached session cookie, so a
+    // prior test's cart items would otherwise leak into this one.
     await cartPage.clearCart();
     await homePage.open();
   });
@@ -19,7 +25,6 @@ test.describe('Checkout and payment (authenticated)', () => {
     cartPage,
     checkoutPage,
     paymentPage,
-    authedUser,
   }) => {
     await homePage.addProductToCartByIndex(0);
     await homePage.goToCartFromModal();
@@ -27,14 +32,14 @@ test.describe('Checkout and payment (authenticated)', () => {
     await cartPage.proceedToCheckout();
     await expect(checkoutPage.deliveryAddressSection).toBeVisible();
     await checkoutPage.expectAddressMatches({
-      firstName: authedUser.account.firstName,
-      lastName: authedUser.account.lastName,
+      firstName: FIXED_TEST_USER.account.firstName,
+      lastName: FIXED_TEST_USER.account.lastName,
     });
 
     await checkoutPage.addOrderComment('Please deliver during business hours. (QA automated order)');
     await checkoutPage.placeOrder();
 
-    const card = buildCardDetails({ nameOnCard: authedUser.name });
+    const card = buildCardDetails({ nameOnCard: FIXED_TEST_USER.name });
     await paymentPage.fillCardDetails(card);
     await paymentPage.confirmPayment();
 
@@ -58,14 +63,15 @@ test.describe('Checkout and payment (authenticated)', () => {
     homePage,
     cartPage,
     checkoutPage,
-    authedUser,
   }) => {
     await homePage.addProductToCartByIndex(0);
     await homePage.goToCartFromModal();
     await cartPage.proceedToCheckout();
 
-    await expect(checkoutPage.billingAddressSection).toContainText(authedUser.account.firstName);
-    await expect(checkoutPage.billingAddressSection).toContainText(authedUser.account.city);
+    await expect(checkoutPage.billingAddressSection).toContainText(
+      FIXED_TEST_USER.account.firstName,
+    );
+    await expect(checkoutPage.billingAddressSection).toContainText(FIXED_TEST_USER.account.city);
   });
 
   test('submitting payment with an incomplete card shows native required-field validation @regression', async ({

@@ -53,9 +53,15 @@ export class CartPage extends BasePage {
   }
 
   async rowCount(): Promise<number> {
-    // Cart rows render after an async call once the page has loaded; give
-    // the table a moment to settle before counting to avoid a 0-row race.
-    await this.page.waitForLoadState('networkidle');
+    // Cart rows render asynchronously after the page loads. Wait for either
+    // a row or the empty-cart message to actually appear instead of
+    // `networkidle`, which can hang well past 30s behind the AUT's
+    // analytics/tracking requests that never fully settle.
+    await this.cartRows
+      .first()
+      .or(this.emptyCartMessage)
+      .waitFor({ state: 'visible', timeout: 10_000 })
+      .catch(() => undefined);
     return this.cartRows.count();
   }
 

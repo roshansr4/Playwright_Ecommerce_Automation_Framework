@@ -26,6 +26,6 @@
       "@types/*": ["src/types/*"]
     }
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "playwright.config.ts", "global-teardown.ts"],
+  "include": ["src/**/*.ts", "tests/**/*.ts", "playwright.config.ts"],
   "exclude": ["node_modules", "dist", "test-results", "playwright-report"]
 }

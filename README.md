@@ -41,14 +41,19 @@ tests/
 - **Fixtures over setup/teardown soup**: `src/fixtures/test-options.ts`
   injects every page object and the API client directly into each test via
   Playwright's fixture system.
-- **Auth handling, the Playwright-recommended way**: a dedicated `setup`
-  project (`tests/auth/auth.setup.ts`) provisions a unique user through the
-  AUT's REST API (fast, non-flaky) and performs **one** real UI login to
-  capture `storageState` to `.auth/user.json`. Specs that need to run as a
-  logged-in user opt in per-file with `test.use({ storageState: STORAGE_STATE_PATH })`;
-  specs that must be logged out (login/signup) simply don't, and run with a
-  clean, cookie-less context. `global-teardown.ts` deletes the provisioned
-  account via the API after the run.
+- **Auth handling, the Playwright-recommended way**: a single, fixed account
+  (`FIXED_TEST_USER` in `src/data/fixed-test-user.ts`) is used everywhere —
+  same email, every run, every browser. A dedicated `setup` project
+  (`tests/auth/auth.setup.ts`) idempotently ensures that account exists via
+  the AUT's REST API before anything else runs. Specs that need to be logged
+  in import `test`/`expect` from `src/fixtures/authed-test-options.ts`
+  instead of the default `test-options.ts`; that variant implements
+  Playwright's ["one account per parallel worker"](https://playwright.dev/docs/auth#moderate-one-account-per-parallel-worker)
+  pattern — every worker logs into the same account independently and caches
+  its own session, so workers (and therefore chromium/firefox/webkit) never
+  share server-side cart/session state even though they're the same
+  identity. Specs that must be logged out (login/signup) just use the
+  default `test-options.ts` and get a clean, cookie-less context.
 - **Data-driven, collision-free test data**: `buildTestUser()` /
   `buildCardDetails()` generate unique, realistic data per invocation so
   parallel workers never collide on uniqueness constraints (e.g. email).
@@ -100,5 +105,5 @@ run, publishing the HTML and JUnit reports as build artifacts.
 2. Register it as a fixture in `src/fixtures/test-options.ts`.
 3. Add specs under `tests/<area>/`, tagging each with `@smoke` or
    `@regression`.
-4. If the flow needs auth, add `test.use({ storageState: STORAGE_STATE_PATH })`
-   at the top of the spec file.
+4. If the flow needs auth, import `test`/`expect` from
+   `src/fixtures/authed-test-options.ts` instead of `test-options.ts`.

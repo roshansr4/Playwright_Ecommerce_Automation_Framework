@@ -1,5 +1,6 @@
 import { test, expect } from '../../src/fixtures/test-options';
 import { buildTestUser } from '../../src/data/user.factory';
+import { FIXED_TEST_USER } from '../../src/data/fixed-test-user';
 import { HeaderComponent } from '../../src/components/header.component';
 
 test.describe('Login', () => {
@@ -15,14 +16,13 @@ test.describe('Login', () => {
     await expect(loginPage.signupEmailInput).toBeVisible();
   });
 
-  test('logs in successfully with valid, previously-provisioned credentials @smoke', async ({
+  test('logs in successfully with the fixed, pre-provisioned account @smoke', async ({
     loginPage,
     page,
-    authedUser,
   }) => {
     const header = new HeaderComponent(page);
-    await loginPage.login(authedUser.email, authedUser.password);
-    await header.expectLoggedInAs(authedUser.name);
+    await loginPage.login(FIXED_TEST_USER.email, FIXED_TEST_USER.password);
+    await header.expectLoggedInAs(FIXED_TEST_USER.name);
     await expect(page).toHaveURL(/automationexercise\.com\/?$/);
   });
 
@@ -48,9 +48,8 @@ test.describe('Login', () => {
 
   test('signup with an already-registered email surfaces an inline error @regression', async ({
     loginPage,
-    authedUser,
   }) => {
-    await loginPage.startSignup('Someone Else', authedUser.email);
+    await loginPage.startSignup('Someone Else', FIXED_TEST_USER.email);
     await loginPage.expectSignupEmailExistsError();
   });
 
